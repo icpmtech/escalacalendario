@@ -1,1 +1,577 @@
-
+<!DOCTYPE html>  <html lang="pt" dir="ltr">  
+<head>  
+  <meta charset="utf-8">  
+  <title>Gerir Horas - Escala de Trabalho</title>  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <!-- Importa Material Symbols para os ícones -->  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">  
+  <style>  
+    /* Variáveis de cores e fontes */  
+    :root {  
+      --primary-color: #007BFF;  
+      --secondary-color: #28a745;  
+      --bg-color: #f7f7f7;  
+      --text-color: #333;  
+      --card-bg: #fff;  
+      --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);  
+      --transition-speed: 0.3s;  
+    }  
+    /* Reset e estilos básicos */  
+    * {  
+      box-sizing: border-box;  
+      margin: 0;  
+      padding: 0;  
+    }  
+    body {  
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
+      background: var(--bg-color);  
+      color: var(--text-color);  
+      line-height: 1.6;  
+    }  
+    header {  
+      background: var(--primary-color);  
+      color: #fff;  
+      padding: 20px;  
+      text-align: center;  
+    }  
+    header h1 {  
+      font-size: 1.8em;  
+      margin-bottom: 5px;  
+    }  
+    header p {  
+      font-size: 1em;  
+      opacity: 0.9;  
+    }  
+    /* Container de abas */  
+    .tabs {  
+      display: flex;  
+      justify-content: center;  
+      background: var(--card-bg);  
+      box-shadow: var(--box-shadow);  
+    }  
+    .tab {  
+      padding: 15px 25px;  
+      cursor: pointer;  
+      transition: background var(--transition-speed);  
+      font-weight: 600;  
+    }  
+    .tab:hover {  
+      background: #eee;  
+    }  
+    .tab.active {  
+      background: var(--primary-color);  
+      color: #fff;  
+    }  
+    /* Containers de conteúdo para as abas */  
+    .content {  
+      display: none;  
+      padding: 20px;  
+    }  
+    .content.active {  
+      display: block;  
+    }  
+    /* Calendário */  
+    .calendar-container {  
+      max-width: 400px;  
+      margin: 0 auto;  
+      background: var(--card-bg);  
+      border-radius: 10px;  
+      box-shadow: var(--box-shadow);  
+      overflow: hidden;  
+      position: relative;  
+    }  
+    .calendar-header {  
+      padding: 20px;  
+      background: var(--primary-color);  
+      color: #fff;  
+      display: flex;  
+      justify-content: space-between;  
+      align-items: center;  
+    }  
+    .calendar-current-date {  
+      font-size: 1.3em;  
+      font-weight: 500;  
+    }  
+    .calendar-navigation {  
+      display: flex;  
+      gap: 15px;  
+    }  
+    .calendar-navigation span {  
+      cursor: pointer;  
+      font-size: 1.8em;  
+      user-select: none;  
+      transition: transform var(--transition-speed);  
+    }  
+    .calendar-navigation span:hover {  
+      transform: scale(1.2);  
+    }  
+    .calendar-body {  
+      padding: 20px;  
+    }  
+    .calendar-weekdays {  
+      list-style: none;  
+      display: flex;  
+      justify-content: space-between;  
+      margin-bottom: 10px;  
+      font-weight: bold;  
+    }  
+    .calendar-weekdays li {  
+      width: 14.28%;  
+      text-align: center;  
+    }  
+    .calendar-dates {  
+      list-style: none;  
+      display: flex;  
+      flex-wrap: wrap;  
+    }  
+    .calendar-dates li {  
+      width: 14.28%;  
+      height: 60px;  
+      line-height: 60px;  
+      text-align: center;  
+      margin-bottom: 10px;  
+      border-radius: 6px;  
+      cursor: pointer;  
+      position: relative;  
+      transition: background var(--transition-speed), transform var(--transition-speed);  
+    }  
+    .calendar-dates li:hover {  
+      background: #eee;  
+      transform: translateY(-2px);  
+    }  
+    .calendar-dates li.active {  
+      background: var(--primary-color);  
+      color: #fff;  
+    }  
+    .calendar-dates li.empty {  
+      background: transparent;  
+      cursor: default;  
+    }  
+    /* Resumo da escala dentro da célula */  
+    .schedule-summary {  
+      position: absolute;  
+      bottom: 4px;  
+      left: 4px;  
+      right: 4px;  
+      font-size: 0.65em;  
+      background: rgba(0, 0, 0, 0.1);  
+      border-radius: 3px;  
+      padding: 2px;  
+      white-space: nowrap;  
+      overflow: hidden;  
+      text-overflow: ellipsis;  
+    }  
+    /* Lista de eventos */  
+    .list-container {  
+      max-width: 600px;  
+      margin: 0 auto;  
+      background: var(--card-bg);  
+      box-shadow: var(--box-shadow);  
+      border-radius: 10px;  
+      overflow-x: auto;  
+    }  
+    table {  
+      width: 100%;  
+      border-collapse: collapse;  
+    }  
+    thead {  
+      background: var(--primary-color);  
+      color: #fff;  
+    }  
+    th, td {  
+      padding: 10px;  
+      text-align: left;  
+      border-bottom: 1px solid #ddd;  
+      font-size: 0.9em;  
+    }  
+    tbody tr:hover {  
+      background: #f1f1f1;  
+    }  
+    /* Drawer - Painel lateral para cadastro */  
+    #drawer {  
+      position: fixed;  
+      top: 0;  
+      right: -420px;  
+      width: 400px;  
+      height: 100%;  
+      background: var(--card-bg);  
+      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);  
+      transition: right var(--transition-speed) ease;  
+      padding: 25px;  
+      overflow-y: auto;  
+      z-index: 1001;  
+      border-radius: 8px;  
+    }  
+    #drawer.open {  
+      right: 20px;  
+    }  
+    #drawer .close-btn {  
+      background: transparent;  
+      border: none;  
+      font-size: 1.8em;  
+      float: right;  
+      cursor: pointer;  
+      color: var(--text-color);  
+    }  
+    #drawer h2 {  
+      margin-bottom: 20px;  
+      clear: both;  
+      font-size: 1.5em;  
+    }  
+    .form-group {  
+      margin-bottom: 15px;  
+    }  
+    .form-group label {  
+      display: block;  
+      margin-bottom: 5px;  
+      font-weight: 600;  
+    }  
+    .form-group input,  
+    .form-group select {  
+      width: 100%;  
+      padding: 10px;  
+      border: 1px solid #ccc;  
+      border-radius: 4px;  
+      font-size: 1em;  
+      transition: border var(--transition-speed);  
+    }  
+    .form-group input:focus,  
+    .form-group select:focus {  
+      border-color: var(--primary-color);  
+      outline: none;  
+    }  
+    .save-btn {  
+      background-color: var(--secondary-color);  
+      color: #fff;  
+      border: none;  
+      padding: 12px;  
+      width: 100%;  
+      border-radius: 4px;  
+      cursor: pointer;  
+      font-size: 1em;  
+      transition: background var(--transition-speed);  
+    }  
+    .save-btn:hover {  
+      background-color: #1e7e34;  
+    }  
+    /* Overlay para o drawer */  
+    #overlay {  
+      display: none;  
+      position: fixed;  
+      top: 0;  
+      left: 0;  
+      width: 100%;  
+      height: 100%;  
+      background: rgba(0, 0, 0, 0.4);  
+      z-index: 1000;  
+      transition: opacity var(--transition-speed);  
+    }  
+    #overlay.active {  
+      display: block;  
+    }  
+    /* Responsividade */  
+    @media (max-width: 480px) {  
+      .calendar-container, .list-container {  
+        margin: 20px;  
+      }  
+      #drawer {  
+        width: 90%;  
+        right: -100%;  
+      }  
+      #drawer.open {  
+        right: 5%;  
+      }  
+    }  
+  </style>  
+</head>  
+<body>  
+  <!-- Cabeçalho -->  
+  <header>  
+    <h1>Gerir Horas</h1>  
+    <p>Gestão de Escalas de Trabalho e Horas Extras</p>  
+  </header>    <!-- Abas de navegação -->    <div class="tabs">  
+    <div id="tab-calendar" class="tab active">Calendário</div>  
+    <div id="tab-list" class="tab">Lista</div>  
+  </div>    <!-- Conteúdo das abas -->    <div id="content-calendar" class="content active">  
+    <div class="calendar-container">  
+      <div class="calendar-header">  
+        <div class="calendar-current-date"></div>  
+        <div class="calendar-navigation">  
+          <span id="calendar-prev" class="material-symbols-rounded">chevron_left</span>  
+          <span id="calendar-next" class="material-symbols-rounded">chevron_right</span>  
+        </div>  
+      </div>  
+      <div class="calendar-body">  
+        <ul class="calendar-weekdays">  
+          <li>Sun</li>  
+          <li>Mon</li>  
+          <li>Tue</li>  
+          <li>Wed</li>  
+          <li>Thu</li>  
+          <li>Fri</li>  
+          <li>Sat</li>  
+        </ul>  
+        <ul class="calendar-dates"></ul>  
+      </div>  
+    </div>  
+  </div>    <div id="content-list" class="content">  
+    <div class="list-container">  
+      <table>  
+        <thead>  
+          <tr>  
+            <th>Data</th>  
+            <th>Entrada</th>  
+            <th>Saída</th>  
+            <th>Extras</th>  
+            <th>Escala</th>  
+            <th>€/h</th>  
+            <th>Total</th>  
+          </tr>  
+        </thead>  
+        <tbody id="eventsTable">  
+          <!-- As linhas serão inseridas dinamicamente -->  
+        </tbody>  
+      </table>  
+    </div>  
+  </div>    <!-- Painel lateral para cadastro/edição -->    <div id="drawer">  
+    <button class="close-btn" onclick="closeDrawer()">×</button>  
+    <h2 id="drawerTitle">Editar Escala</h2>  
+    <form id="scheduleForm">  
+      <div class="form-group">  
+        <label for="dateInput">Data</label>  
+        <input type="text" id="dateInput" name="date" readonly>  
+      </div>  
+      <div class="form-group">  
+        <label for="startTime">Horário de Entrada</label>  
+        <input type="time" id="startTime" name="startTime" required>  
+      </div>  
+      <div class="form-group">  
+        <label for="endTime">Horário de Saída</label>  
+        <input type="time" id="endTime" name="endTime" required>  
+      </div>  
+      <div class="form-group">  
+        <label for="extraHours">Horas Extras</label>  
+        <input type="number" id="extraHours" name="extraHours" min="0" step="0.5" placeholder="Ex: 1.5">  
+      </div>  
+      <div class="form-group">  
+        <label for="serviceSchedule">Escala de Serviço</label>  
+        <select id="serviceSchedule" name="serviceSchedule">  
+          <option value="">Selecione</option>  
+          <option value="Manhã">Manhã</option>  
+          <option value="Tarde">Tarde</option>  
+          <option value="Noite">Noite</option>  
+        </select>  
+      </div>  
+      <div class="form-group">  
+        <label for="hourlyRate">Preço por Hora</label>  
+        <input type="number" id="hourlyRate" name="hourlyRate" min="0" step="0.01" placeholder="Ex: 25.00">  
+      </div>  
+      <div class="form-group">  
+        <label for="totalPayment">Total a Pagar</label>  
+        <input type="text" id="totalPayment" name="totalPayment" readonly>  
+      </div>  
+      <button type="submit" class="save-btn">Salvar</button>  
+    </form>  
+  </div>    <!-- Overlay para o drawer -->    <div id="overlay" onclick="closeDrawer()"></div>    <script>  
+    // Elementos comuns  
+    const calendarCurrentDate = document.querySelector('.calendar-current-date');  
+    const calendarDates = document.querySelector('.calendar-dates');  
+    const prevBtn = document.getElementById('calendar-prev');  
+    const nextBtn = document.getElementById('calendar-next');  
+    let currentDate = new Date();  
+      
+    // Abas  
+    const tabCalendar = document.getElementById('tab-calendar');  
+    const tabList = document.getElementById('tab-list');  
+    const contentCalendar = document.getElementById('content-calendar');  
+    const contentList = document.getElementById('content-list');  
+      
+    // Renderiza o calendário  
+    function renderCalendar() {  
+      calendarDates.innerHTML = '';  
+      const year = currentDate.getFullYear();  
+      const month = currentDate.getMonth();  
+      const monthNames = ["January", "February", "March", "April", "May", "June",   
+                          "July", "August", "September", "October", "November", "December"];  
+      calendarCurrentDate.textContent = `${monthNames[month]} ${year}`;  
+        
+      const firstDayOfMonth = new Date(year, month, 1).getDay();  
+      const daysInMonth = new Date(year, month + 1, 0).getDate();  
+        
+      // Preenche espaços vazios  
+      for (let i = 0; i < firstDayOfMonth; i++) {  
+        const li = document.createElement('li');  
+        li.classList.add('empty');  
+        calendarDates.appendChild(li);  
+      }  
+        
+      // Preenche os dias  
+      for (let day = 1; day <= daysInMonth; day++) {  
+        const li = document.createElement('li');  
+        li.textContent = day;  
+        const dateObj = new Date(year, month, day);  
+        const dateStr = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD  
+          
+        let schedule = getSchedule(dateStr);  
+        if (schedule) {  
+          const summary = document.createElement('div');  
+          summary.classList.add('schedule-summary');  
+          summary.textContent = `${schedule.startTime} - ${schedule.endTime} (€${parseFloat(schedule.totalPayment).toFixed(2)})`;  
+          li.appendChild(summary);  
+        }  
+          
+        const today = new Date();  
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()){  
+          li.classList.add('active');  
+        }  
+          
+        li.addEventListener('click', function() {  
+          openDrawer(dateStr);  
+        });  
+          
+        calendarDates.appendChild(li);  
+      }  
+    }  
+      
+    // Navegação entre meses  
+    prevBtn.addEventListener('click', () => {  
+      currentDate.setMonth(currentDate.getMonth() - 1);  
+      renderCalendar();  
+    });  
+    nextBtn.addEventListener('click', () => {  
+      currentDate.setMonth(currentDate.getMonth() + 1);  
+      renderCalendar();  
+    });  
+      
+    // Funções do drawer  
+    let selectedDate = null;  
+    function openDrawer(dateStr) {  
+      selectedDate = dateStr;  
+      document.getElementById('dateInput').value = dateStr;  
+      let schedule = getSchedule(dateStr);  
+      if (schedule) {  
+        document.getElementById('startTime').value = schedule.startTime;  
+        document.getElementById('endTime').value = schedule.endTime;  
+        document.getElementById('extraHours').value = schedule.extraHours || '';  
+        document.getElementById('serviceSchedule').value = schedule.serviceSchedule || '';  
+        document.getElementById('hourlyRate').value = schedule.hourlyRate || '';  
+        document.getElementById('totalPayment').value = "€ " + parseFloat(schedule.totalPayment).toFixed(2);  
+      } else {  
+        document.getElementById('scheduleForm').reset();  
+        document.getElementById('dateInput').value = dateStr;  
+        document.getElementById('totalPayment').value = "";  
+      }  
+      document.getElementById('drawer').classList.add('open');  
+      document.getElementById('overlay').classList.add('active');  
+    }  
+      
+    function closeDrawer() {  
+      document.getElementById('drawer').classList.remove('open');  
+      document.getElementById('overlay').classList.remove('active');  
+    }  
+      
+    // Persistência via localStorage  
+    function getSchedule(dateStr) {  
+      const schedules = JSON.parse(localStorage.getItem('schedules')) || {};  
+      return schedules[dateStr];  
+    }  
+    function saveSchedule(dateStr, data) {  
+      const schedules = JSON.parse(localStorage.getItem('schedules')) || {};  
+      schedules[dateStr] = data;  
+      localStorage.setItem('schedules', JSON.stringify(schedules));  
+    }  
+      
+    // Calcula o total  
+    function calculateTotal() {  
+      const startTime = document.getElementById('startTime').value;  
+      const endTime = document.getElementById('endTime').value;  
+      const extraHours = parseFloat(document.getElementById('extraHours').value) || 0;  
+      const hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;  
+      if (startTime && endTime && hourlyRate) {  
+        const [startH, startM] = startTime.split(':').map(Number);  
+        const [endH, endM] = endTime.split(':').map(Number);  
+        let normalHours = (endH + endM / 60) - (startH + startM / 60);  
+        if (normalHours < 0) normalHours += 24;  
+        const totalHours = normalHours + extraHours;  
+        const totalPayment = totalHours * hourlyRate;  
+        document.getElementById('totalPayment').value = "€ " + totalPayment.toFixed(2);  
+        return totalPayment;  
+      } else {  
+        document.getElementById('totalPayment').value = "";  
+        return 0;  
+      }  
+    }  
+      
+    // Submissão do formulário  
+    document.getElementById('scheduleForm').addEventListener('submit', function(e) {  
+      e.preventDefault();  
+      const totalPayment = calculateTotal();  
+      const data = {  
+        date: document.getElementById('dateInput').value,  
+        startTime: document.getElementById('startTime').value,  
+        endTime: document.getElementById('endTime').value,  
+        extraHours: document.getElementById('extraHours').value,  
+        serviceSchedule: document.getElementById('serviceSchedule').value,  
+        hourlyRate: document.getElementById('hourlyRate').value,  
+        totalPayment: totalPayment  
+      };  
+      saveSchedule(selectedDate, data);  
+      closeDrawer();  
+      renderCalendar();  
+      refreshListView();  
+    });  
+      
+    // Função para preencher a aba de lista com os eventos  
+    function refreshListView() {  
+      const eventsTable = document.getElementById('eventsTable');  
+      eventsTable.innerHTML = "";  
+      const schedules = JSON.parse(localStorage.getItem('schedules')) || {};  
+      // Ordena as datas  
+      const dates = Object.keys(schedules).sort();  
+      if(dates.length === 0) {  
+        const tr = document.createElement('tr');  
+        const td = document.createElement('td');  
+        td.colSpan = 7;  
+        td.style.textAlign = "center";  
+        td.textContent = "Nenhum evento cadastrado.";  
+        tr.appendChild(td);  
+        eventsTable.appendChild(tr);  
+      } else {  
+        dates.forEach(dateStr => {  
+          const sched = schedules[dateStr];  
+          const tr = document.createElement('tr');  
+          tr.innerHTML = `  
+            <td>${dateStr}</td>  
+            <td>${sched.startTime || "-"}</td>  
+            <td>${sched.endTime || "-"}</td>  
+            <td>${sched.extraHours || "-"}</td>  
+            <td>${sched.serviceSchedule || "-"}</td>  
+            <td>${sched.hourlyRate ? "€" + parseFloat(sched.hourlyRate).toFixed(2) : "-"}</td>  
+            <td>${sched.totalPayment ? "€" + parseFloat(sched.totalPayment).toFixed(2) : "-"}</td>  
+          `;  
+          eventsTable.appendChild(tr);  
+        });  
+      }  
+    }  
+      
+    // Lida com as abas  
+    tabCalendar.addEventListener('click', function() {  
+      tabCalendar.classList.add('active');  
+      tabList.classList.remove('active');  
+      contentCalendar.classList.add('active');  
+      contentList.classList.remove('active');  
+    });  
+      
+    tabList.addEventListener('click', function() {  
+      tabList.classList.add('active');  
+      tabCalendar.classList.remove('active');  
+      contentList.classList.add('active');  
+      contentCalendar.classList.remove('active');  
+      refreshListView();  
+    });  
+      
+    // Inicializa  
+    renderCalendar();  
+    refreshListView();  
+  </script>  </body>  
+</html> 
