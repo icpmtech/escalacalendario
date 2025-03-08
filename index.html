@@ -4,25 +4,34 @@
   <meta charset="utf-8">
   <title>Gerir Horas - Escala de Trabalho</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Importa Material Symbols para os ícones -->
+  <!-- Material Symbols para os ícones -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-  <!-- Importa a fonte Roboto -->
+  <!-- Fonte Roboto -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-  <!-- Importa Chart.js para gráficos -->
+  <!-- Chart.js para gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Variáveis de cores, fontes e medidas */
+    /* Variáveis de cores e medidas */
     :root {
       --primary-color: #007BFF;
       --secondary-color: #28a745;
       --bg-color: #f0f2f5;
       --text-color: #333;
       --card-bg: #fff;
-      --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       --transition-speed: 0.3s;
       --font-size-base: 16px;
     }
-    /* Reset e estilos básicos */
+    /* Tema escuro (ativado com a classe "dark") */
+    body.dark {
+      --primary-color: #375a7f;
+      --secondary-color: #00bc8c;
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    /* Reset e estilo base */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -35,29 +44,33 @@
       line-height: 1.6;
       font-size: var(--font-size-base);
       overflow-x: hidden;
+      transition: background var(--transition-speed), color var(--transition-speed);
+      padding-bottom: 70px; /* espaço para a navegação inferior */
     }
+    /* Header melhorado com degradê e botões de ação */
     header {
-      background: var(--primary-color);
+      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
       color: #fff;
-      padding: 20px;
+      padding: 20px 20px 30px 20px;
       text-align: center;
-      margin-bottom: 15px;
-      position: relative;
+      position: sticky;
+      top: 0;
+      z-index: 10;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     header h1 {
       font-size: 1.8em;
       margin-bottom: 5px;
+      letter-spacing: 1px;
     }
     header p {
       font-size: 1em;
       opacity: 0.9;
     }
-    /* Botão de tela cheia */
-    #fullscreenBtn {
+    /* Botões do header */
+    #fullscreenBtn, #themeToggleBtn, #viewToggleBtn {
       position: absolute;
       top: 20px;
-      right: 20px;
       background: var(--secondary-color);
       border: none;
       padding: 8px 12px;
@@ -67,57 +80,29 @@
       font-size: 0.9em;
       transition: background var(--transition-speed);
     }
-    #fullscreenBtn:hover {
+    #fullscreenBtn { right: 20px; }
+    #themeToggleBtn { right: 100px; }
+    #viewToggleBtn { right: 180px; }
+    #fullscreenBtn:hover, #themeToggleBtn:hover, #viewToggleBtn:hover {
       background: #1e7e34;
     }
-    /* Abas de navegação */
-    .tabs {
-      display: flex;
-      justify-content: center;
-      background: var(--card-bg);
-      box-shadow: var(--box-shadow);
-      margin: 0 10px 15px;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .tab {
-      flex: 1;
-      padding: 15px;
-      cursor: pointer;
-      transition: background var(--transition-speed);
-      font-weight: 500;
-      text-align: center;
-      font-size: 1em;
-    }
-    .tab:hover {
-      background: #f1f1f1;
-    }
-    .tab.active {
-      background: var(--primary-color);
-      color: #fff;
-    }
-    /* Containers de conteúdo para as abas */
+    /* Conteúdo principal */
     .content {
-      display: none;
       padding: 20px;
       animation: fadeIn 0.4s ease-in;
-    }
-    .content.active {
-      display: block;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    /* Calendário */
-    .calendar-container {
+    /* Calendário Mês */
+    #calendar-view {
       max-width: 420px;
       margin: 0 auto 20px;
       background: var(--card-bg);
       border-radius: 10px;
       box-shadow: var(--box-shadow);
       overflow: hidden;
-      position: relative;
     }
     .calendar-header {
       padding: 20px;
@@ -187,21 +172,67 @@
       background: transparent;
       cursor: default;
     }
-    /* Resumo da escala dentro da célula */
     .schedule-summary {
       position: absolute;
       bottom: 4px;
       left: 4px;
       right: 4px;
       font-size: 0.65em;
-      background: rgba(0, 0, 0, 0.1);
+      background: rgba(0,0,0,0.1);
       border-radius: 3px;
       padding: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    /* Lista de eventos */
+    /* Visualização Dia por Hora */
+    #day-view {
+      max-width: 420px;
+      margin: 0 auto 20px;
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: var(--box-shadow);
+      overflow: hidden;
+      display: none;
+    }
+    .day-view-header {
+      padding: 20px;
+      background: var(--primary-color);
+      color: #fff;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 500;
+    }
+    .day-view-body {
+      display: flex;
+      flex-direction: column;
+    }
+    .day-hour-block {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background var(--transition-speed);
+    }
+    .day-hour-block:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    .day-hour-block.active {
+      background: var(--primary-color);
+      color: #fff;
+    }
+    .hour-label {
+      font-weight: bold;
+      min-width: 60px;
+    }
+    .hour-event {
+      flex: 1;
+      text-align: right;
+      font-size: 0.9em;
+    }
+    /* Lista de eventos (mantida a estrutura original) */
     .list-container {
       max-width: 600px;
       margin: 0 auto 20px;
@@ -228,7 +259,7 @@
       background: #f9f9f9;
       cursor: pointer;
     }
-    /* Aba Métricas */
+    /* Métricas */
     .metrics-summary {
       display: flex;
       justify-content: space-around;
@@ -255,7 +286,7 @@
       max-width: 600px;
       margin: 0 auto;
     }
-    /* Drawer - Painel lateral para cadastro/edição */
+    /* Drawer de cadastro/edição */
     #drawer {
       position: fixed;
       top: 0;
@@ -264,7 +295,7 @@
       max-width: 90%;
       height: 100%;
       background: var(--card-bg);
-      box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+      box-shadow: -4px 0 12px rgba(0,0,0,0.15);
       transition: right var(--transition-speed) ease;
       padding: 25px;
       overflow-y: auto;
@@ -331,19 +362,68 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0,0,0,0.4);
       z-index: 1000;
       transition: opacity var(--transition-speed);
     }
     #overlay.active {
       display: block;
     }
+    /* Navegação inferior estilo TikTok */
+    .tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: var(--card-bg);
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      border-top: 1px solid #ddd;
+      padding: 8px 0;
+      z-index: 10;
+    }
+    .tabs .tab {
+      flex: 1;
+      text-align: center;
+      font-size: 0.8em;
+      color: var(--text-color);
+      transition: color var(--transition-speed);
+    }
+    .tabs .tab.active {
+      color: var(--primary-color);
+    }
+    .tabs .tab .material-symbols-rounded {
+      display: block;
+      font-size: 1.8em;
+      margin-bottom: 2px;
+    }
+    /* Botão de ação flutuante (FAB) */
+    #fab {
+      position: fixed;
+      bottom: 70px;
+      right: 20px;
+      background: var(--secondary-color);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      z-index: 11;
+    }
+    #fab:hover { transform: scale(1.1); }
     /* Responsividade */
     @media (max-width: 600px) {
       header { padding: 15px; }
-      .tabs { margin: 0 5px; }
-      .tab { padding: 12px; font-size: 0.95em; }
-      .calendar-container { max-width: 100%; margin: 10px; }
+      #calendar-view, #day-view { max-width: 100%; margin: 10px; }
       .calendar-header { flex-direction: column; align-items: flex-start; }
       .calendar-navigation { margin-top: 10px; }
       .calendar-weekdays li,
@@ -356,43 +436,46 @@
   </style>
 </head>
 <body>
-  <!-- Cabeçalho -->
+  <!-- Header -->
   <header>
     <h1>Gerir Horas</h1>
     <p>Gestão de Escalas de Trabalho e Horas Extras</p>
+    <button id="themeToggleBtn" class="material-symbols-rounded">dark_mode</button>
+    <button id="viewToggleBtn">Mês</button>
     <button id="fullscreenBtn">Full Screen</button>
   </header>
-  <!-- Abas de navegação -->
-  <div class="tabs">
-    <div id="tab-calendar" class="tab active">Calendário</div>
-    <div id="tab-list" class="tab">Lista</div>
-    <div id="tab-metrics" class="tab">Métricas</div>
-  </div>
-  <!-- Conteúdo das abas -->
-  <div id="content-calendar" class="content active">
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <div class="calendar-current-date"></div>
-        <div class="calendar-navigation">
-          <span id="calendar-prev" class="material-symbols-rounded">chevron_left</span>
-          <span id="calendar-next" class="material-symbols-rounded">chevron_right</span>
-        </div>
-      </div>
-      <div class="calendar-body">
-        <ul class="calendar-weekdays">
-          <li>Dom</li>
-          <li>Seg</li>
-          <li>Ter</li>
-          <li>Qua</li>
-          <li>Qui</li>
-          <li>Sex</li>
-          <li>Sáb</li>
-        </ul>
-        <ul class="calendar-dates"></ul>
+
+  <!-- Conteúdo para visualização Mês -->
+  <div id="calendar-view" class="content">
+    <div class="calendar-header">
+      <div class="calendar-current-date"></div>
+      <div class="calendar-navigation">
+        <span id="calendar-prev" class="material-symbols-rounded">chevron_left</span>
+        <span id="calendar-next" class="material-symbols-rounded">chevron_right</span>
       </div>
     </div>
+    <div class="calendar-body">
+      <ul class="calendar-weekdays">
+        <li>Dom</li>
+        <li>Seg</li>
+        <li>Ter</li>
+        <li>Qua</li>
+        <li>Qui</li>
+        <li>Sex</li>
+        <li>Sáb</li>
+      </ul>
+      <ul class="calendar-dates"></ul>
+    </div>
   </div>
-  <div id="content-list" class="content">
+
+  <!-- Conteúdo para visualização Dia (por hora) -->
+  <div id="day-view" class="content">
+    <div class="day-view-header"></div>
+    <div class="day-view-body"></div>
+  </div>
+
+  <!-- Conteúdo Lista (mesma estrutura) -->
+  <div id="content-list" class="content" style="display:none;">
     <div class="list-container">
       <table>
         <thead>
@@ -407,12 +490,14 @@
           </tr>
         </thead>
         <tbody id="eventsTable">
-          <!-- As linhas serão inseridas dinamicamente -->
+          <!-- Linhas inseridas dinamicamente -->
         </tbody>
       </table>
     </div>
   </div>
-  <div id="content-metrics" class="content">
+
+  <!-- Conteúdo Métricas (mesma estrutura) -->
+  <div id="content-metrics" class="content" style="display:none;">
     <div class="metrics-summary">
       <div class="metric-card">
         <h3>Semana</h3>
@@ -434,7 +519,8 @@
       <canvas id="metricsChart"></canvas>
     </div>
   </div>
-  <!-- Painel lateral para cadastro/edição -->
+
+  <!-- Drawer para cadastro/edição -->
   <div id="drawer">
     <button class="close-btn" onclick="closeDrawer()">×</button>
     <h2 id="drawerTitle">Editar Escala</h2>
@@ -477,24 +563,67 @@
   </div>
   <!-- Overlay para o drawer -->
   <div id="overlay" onclick="closeDrawer()"></div>
+  <!-- Botão de ação flutuante (FAB) -->
+  <button id="fab" class="material-symbols-rounded">add</button>
+  
+  <!-- Navegação inferior -->
+  <div class="tabs">
+    <div id="nav-calendar" class="tab active">
+      <span class="material-symbols-rounded">calendar_today</span>
+      <span>Calendário</span>
+    </div>
+    <div id="nav-list" class="tab">
+      <span class="material-symbols-rounded">format_list_bulleted</span>
+      <span>Lista</span>
+    </div>
+    <div id="nav-metrics" class="tab">
+      <span class="material-symbols-rounded">bar_chart</span>
+      <span>Métricas</span>
+    </div>
+  </div>
+  
   <script>
-    // Elementos comuns
+    // Variável para controlar o modo de visualização: "month" ou "day"
+    let viewMode = "month";  
+    // Elementos comuns do calendário mensal
     const calendarCurrentDate = document.querySelector('.calendar-current-date');
     const calendarDates = document.querySelector('.calendar-dates');
     const prevBtn = document.getElementById('calendar-prev');
     const nextBtn = document.getElementById('calendar-next');
     let currentDate = new Date();
-
-    // Abas
-    const tabCalendar = document.getElementById('tab-calendar');
-    const tabList = document.getElementById('tab-list');
-    const tabMetrics = document.getElementById('tab-metrics');
-    const contentCalendar = document.getElementById('content-calendar');
+    // Elementos dos conteúdos
+    const calendarView = document.getElementById('calendar-view');
+    const dayView = document.getElementById('day-view');
+    const dayViewHeader = document.querySelector('.day-view-header');
+    const dayViewBody = document.querySelector('.day-view-body');
     const contentList = document.getElementById('content-list');
     const contentMetrics = document.getElementById('content-metrics');
-
-    // Tela cheia
+    // Botões do header
     const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const viewToggleBtn = document.getElementById('viewToggleBtn');
+    // Botões de navegação inferior
+    const navCalendar = document.getElementById('nav-calendar');
+    const navList = document.getElementById('nav-list');
+    const navMetrics = document.getElementById('nav-metrics');
+
+    // Função para alternar visualização (mês x dia)
+    viewToggleBtn.addEventListener('click', () => {
+      if (viewMode === "month") {
+        viewMode = "day";
+        viewToggleBtn.textContent = "Dia";
+        calendarView.style.display = "none";
+        dayView.style.display = "block";
+        renderDayView(currentDate);
+      } else {
+        viewMode = "month";
+        viewToggleBtn.textContent = "Mês";
+        dayView.style.display = "none";
+        calendarView.style.display = "block";
+      }
+    });
+
+    // Alterna tela cheia
     fullscreenBtn.addEventListener('click', function() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen();
@@ -504,8 +633,13 @@
         fullscreenBtn.textContent = 'Full Screen';
       }
     });
+    // Alterna tema
+    themeToggleBtn.addEventListener('click', function() {
+      document.body.classList.toggle('dark');
+      themeToggleBtn.textContent = document.body.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+    });
 
-    // Renderiza o calendário
+    // Renderiza o calendário mensal
     function renderCalendar() {
       calendarDates.innerHTML = '';
       const year = currentDate.getFullYear();
@@ -513,24 +647,20 @@
       const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                           "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
       calendarCurrentDate.textContent = `${monthNames[month]} ${year}`;
-
       const firstDayOfMonth = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      // Preenche espaços vazios
+      // Espaços vazios
       for (let i = 0; i < firstDayOfMonth; i++) {
         const li = document.createElement('li');
         li.classList.add('empty');
         calendarDates.appendChild(li);
       }
-
-      // Preenche os dias
+      // Dias
       for (let day = 1; day <= daysInMonth; day++) {
         const li = document.createElement('li');
         li.textContent = day;
         const dateObj = new Date(year, month, day);
         const dateStr = dateObj.toISOString().split('T')[0];
-
         let schedule = getSchedule(dateStr);
         if (schedule) {
           const summary = document.createElement('div');
@@ -538,20 +668,16 @@
           summary.textContent = `${schedule.startTime} - ${schedule.endTime} (€${parseFloat(schedule.totalPayment).toFixed(2)})`;
           li.appendChild(summary);
         }
-
         const today = new Date();
         if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()){
           li.classList.add('active');
         }
-
         li.addEventListener('click', function() {
           openDrawer(dateStr);
         });
-
         calendarDates.appendChild(li);
       }
     }
-
     // Navegação entre meses
     prevBtn.addEventListener('click', () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
@@ -562,9 +688,41 @@
       renderCalendar();
     });
 
+    // Renderiza a visualização diária (por hora)
+    function renderDayView(date) {
+      dayViewBody.innerHTML = "";
+      dayViewHeader.textContent = "Dia: " + date.toISOString().split('T')[0];
+      let schedule = getSchedule(date.toISOString().split('T')[0]);
+      let startHour = null, endHour = null;
+      if(schedule) {
+        let [sh, sm] = schedule.startTime.split(':').map(Number);
+        let [eh, em] = schedule.endTime.split(':').map(Number);
+        startHour = sh;
+        endHour = eh + (em > 0 ? 1 : 0); // arredonda para próximo inteiro
+      }
+      // Cria blocos para cada hora do dia
+      for(let h = 0; h < 24; h++){
+        const block = document.createElement('div');
+        block.classList.add('day-hour-block');
+        // Se existir schedule e a hora estiver no intervalo, marca como ativo
+        if(startHour !== null && endHour !== null && h >= startHour && h < endHour){
+          block.classList.add('active');
+          block.innerHTML = `<span class="hour-label">${h.toString().padStart(2, '0')}:00</span>
+                             <span class="hour-event">${schedule.startTime} - ${schedule.endTime} | €${parseFloat(schedule.totalPayment).toFixed(2)}</span>`;
+        } else {
+          block.innerHTML = `<span class="hour-label">${h.toString().padStart(2, '0')}:00</span>
+                             <span class="hour-event"></span>`;
+        }
+        // Ao clicar, abre o drawer pré-preenchendo o horário de entrada com a hora clicada
+        block.addEventListener('click', () => {
+          openDrawer(date.toISOString().split('T')[0], h);
+        });
+        dayViewBody.appendChild(block);
+      }
+    }
     // Funções do drawer
     let selectedDate = null;
-    function openDrawer(dateStr) {
+    function openDrawer(dateStr, prefillHour = null) {
       selectedDate = dateStr;
       document.getElementById('dateInput').value = dateStr;
       let schedule = getSchedule(dateStr);
@@ -578,17 +736,19 @@
       } else {
         document.getElementById('scheduleForm').reset();
         document.getElementById('dateInput').value = dateStr;
+        if(prefillHour !== null){
+          let prefill = prefillHour.toString().padStart(2, '0') + ":00";
+          document.getElementById('startTime').value = prefill;
+        }
         document.getElementById('totalPayment').value = "";
       }
       document.getElementById('drawer').classList.add('open');
       document.getElementById('overlay').classList.add('active');
     }
-
     function closeDrawer() {
       document.getElementById('drawer').classList.remove('open');
       document.getElementById('overlay').classList.remove('active');
     }
-
     // Persistência via localStorage
     function getSchedule(dateStr) {
       const schedules = JSON.parse(localStorage.getItem('schedules')) || {};
@@ -599,8 +759,7 @@
       schedules[dateStr] = data;
       localStorage.setItem('schedules', JSON.stringify(schedules));
     }
-
-    // Calcula o total
+    // Calcula o total a pagar
     function calculateTotal() {
       const startTime = document.getElementById('startTime').value;
       const endTime = document.getElementById('endTime').value;
@@ -620,7 +779,6 @@
         return 0;
       }
     }
-
     // Submissão do formulário
     document.getElementById('scheduleForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -639,9 +797,10 @@
       renderCalendar();
       refreshListView();
       refreshMetrics();
+      // Se estiver no modo dia, atualiza a timeline
+      if(viewMode === "day") renderDayView(new Date(selectedDate));
     });
-
-    // Preenche a aba de lista com os eventos
+    // Atualiza a lista de eventos
     function refreshListView() {
       const eventsTable = document.getElementById('eventsTable');
       eventsTable.innerHTML = "";
@@ -675,16 +834,11 @@
         });
       }
     }
-
-    // Variável global para o gráfico de métricas
+    // Gráfico de métricas
     let metricsChart;
-
-    // Calcula e atualiza as métricas e o gráfico
     function refreshMetrics() {
       const schedules = JSON.parse(localStorage.getItem('schedules')) || {};
       const now = new Date();
-      
-      // Definir início e fim da semana (domingo a sábado)
       let weekStart = new Date(now);
       weekStart.setHours(0,0,0,0);
       weekStart.setDate(now.getDate() - now.getDay());
@@ -695,7 +849,6 @@
       let monthEvents = 0, monthPayment = 0;
       let yearEvents = 0, yearPayment = 0;
       
-      // Para gráfico: para o mês atual, agrupar por dia
       const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       const labels = [];
       const eventsCountPerDay = new Array(daysInMonth).fill(0);
@@ -709,13 +862,10 @@
         const payment = parseFloat(sched.totalPayment) || 0;
         const eventDate = new Date(dateStr);
         eventDate.setHours(0,0,0,0);
-        
-        // Semana: se estiver entre weekStart e weekEnd
         if (eventDate >= weekStart && eventDate <= weekEnd) {
           weekEvents++;
           weekPayment += payment;
         }
-        // Mês: se mês e ano forem iguais
         if (eventDate.getFullYear() === now.getFullYear() && eventDate.getMonth() === now.getMonth()) {
           monthEvents++;
           monthPayment += payment;
@@ -723,14 +873,12 @@
           eventsCountPerDay[day-1]++;
           paymentPerDay[day-1] += payment;
         }
-        // Ano: se o ano for o atual
         if (eventDate.getFullYear() === now.getFullYear()) {
           yearEvents++;
           yearPayment += payment;
         }
       });
       
-      // Atualiza os elementos de métricas
       document.getElementById('weekEvents').textContent = "Eventos: " + weekEvents;
       document.getElementById('weekPayment').textContent = "Total: €" + weekPayment.toFixed(2);
       document.getElementById('monthEvents').textContent = "Eventos: " + monthEvents;
@@ -738,7 +886,6 @@
       document.getElementById('yearEvents').textContent = "Eventos: " + yearEvents;
       document.getElementById('yearPayment').textContent = "Total: €" + yearPayment.toFixed(2);
       
-      // Atualiza o gráfico usando Chart.js
       const ctx = document.getElementById('metricsChart').getContext('2d');
       const chartData = {
         labels: labels,
@@ -747,86 +894,79 @@
             type: 'bar',
             label: 'Eventos',
             data: eventsCountPerDay,
-            backgroundColor: 'rgba(0, 123, 255, 0.6)',
+            backgroundColor: 'rgba(0,123,255,0.6)',
             yAxisID: 'y-events'
           },
           {
             type: 'line',
             label: 'Pagamento (€)',
             data: paymentPerDay,
-            backgroundColor: 'rgba(40, 167, 69, 0.6)',
-            borderColor: 'rgba(40, 167, 69, 1)',
+            backgroundColor: 'rgba(40,167,69,0.6)',
+            borderColor: 'rgba(40,167,69,1)',
             fill: false,
             tension: 0.2,
             yAxisID: 'y-payment'
           }
         ]
       };
-      
       const chartOptions = {
         responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false
-        },
+        interaction: { mode: 'index', intersect: false },
         scales: {
-          'y-events': {
-            beginAtZero: true,
-            position: 'left',
-            title: { display: true, text: 'Eventos' }
-          },
-          'y-payment': {
-            beginAtZero: true,
-            position: 'right',
-            title: { display: true, text: 'Pagamento (€)' },
-            grid: { drawOnChartArea: false }
-          }
+          'y-events': { beginAtZero: true, position: 'left', title: { display: true, text: 'Eventos' } },
+          'y-payment': { beginAtZero: true, position: 'right', title: { display: true, text: 'Pagamento (€)' }, grid: { drawOnChartArea: false } }
         }
       };
-      
       if (metricsChart) {
         metricsChart.data = chartData;
         metricsChart.options = chartOptions;
         metricsChart.update();
       } else {
-        metricsChart = new Chart(ctx, {
-          data: chartData,
-          options: chartOptions
-        });
+        metricsChart = new Chart(ctx, { data: chartData, options: chartOptions });
       }
     }
-
-    // Lida com as abas
-    tabCalendar.addEventListener('click', function() {
-      tabCalendar.classList.add('active');
-      tabList.classList.remove('active');
-      tabMetrics.classList.remove('active');
-      contentCalendar.classList.add('active');
-      contentList.classList.remove('active');
-      contentMetrics.classList.remove('active');
+    // Navegação inferior
+    navCalendar.addEventListener('click', function() {
+      navCalendar.classList.add('active');
+      navList.classList.remove('active');
+      navMetrics.classList.remove('active');
+      if(viewMode === "month"){
+        calendarView.style.display = "block";
+        dayView.style.display = "none";
+      } else {
+        dayView.style.display = "block";
+        calendarView.style.display = "none";
+      }
+      contentList.style.display = "none";
+      contentMetrics.style.display = "none";
     });
-
-    tabList.addEventListener('click', function() {
-      tabList.classList.add('active');
-      tabCalendar.classList.remove('active');
-      tabMetrics.classList.remove('active');
-      contentList.classList.add('active');
-      contentCalendar.classList.remove('active');
-      contentMetrics.classList.remove('active');
+    navList.addEventListener('click', function() {
+      navList.classList.add('active');
+      navCalendar.classList.remove('active');
+      navMetrics.classList.remove('active');
+      contentList.style.display = "block";
+      calendarView.style.display = "none";
+      dayView.style.display = "none";
+      contentMetrics.style.display = "none";
       refreshListView();
     });
-
-    tabMetrics.addEventListener('click', function() {
-      tabMetrics.classList.add('active');
-      tabCalendar.classList.remove('active');
-      tabList.classList.remove('active');
-      contentMetrics.classList.add('active');
-      contentCalendar.classList.remove('active');
-      contentList.classList.remove('active');
+    navMetrics.addEventListener('click', function() {
+      navMetrics.classList.add('active');
+      navCalendar.classList.remove('active');
+      navList.classList.remove('active');
+      contentMetrics.style.display = "block";
+      calendarView.style.display = "none";
+      dayView.style.display = "none";
+      contentList.style.display = "none";
       refreshMetrics();
     });
-
-    // Inicializa
+    // Botão flutuante para novo evento (data de hoje)
+    document.getElementById('fab').addEventListener('click', function() {
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      openDrawer(dateStr);
+    });
+    // Inicializações
     renderCalendar();
     refreshListView();
   </script>
